@@ -1,8 +1,8 @@
 from homeostatic_perceptron import *
 
 class HomeostaticPerceptronDelta(HomeostaticPerceptron):
-    def __init__(self, layers, activation_functions, learning_rate, theta, linear):
-        super().__init__(layers, activation_functions, learning_rate, linear=linear)
+    def __init__(self, layers, activation_functions, learning_rate, theta, linear, seed=None):
+        super().__init__(layers, activation_functions, learning_rate, linear=linear, seed=seed)
         self.threshold = theta
 
     def _phi_with_thresholds(self, learning_rate, i, j, delta, lr_change_start_array):
@@ -32,14 +32,14 @@ class HomeostaticPerceptronDelta(HomeostaticPerceptron):
             def phi_hidden(lr, i, j, delta):
                 return self._phi_with_thresholds(lr, i, j, delta, self.lr_change_start_hidden)
 
-            vrctorized_phi = np.vectorize(phi_hidden)
+            vrctorized_phi = np.vectorize(phi_hidden, otypes=[float])
             self.learning_rates_hidden = vrctorized_phi(self.learning_rates_hidden,
                                                         i_idxs_hid, j_idxs_hid, self.deltas_hidden_means[self.epoch][i_idxs_hid])
 
             def phi_output(lr, i, j, delta):
                 return self._phi_with_thresholds(lr, i, j, delta, self.lr_change_start_output)
 
-            vrctorized_phi = np.vectorize(phi_output)
+            vrctorized_phi = np.vectorize(phi_output, otypes=[float])
             self.learning_rates_output = vrctorized_phi(self.learning_rates_output,
                                                         i_idxs_out, j_idxs_out, self.deltas_output_means[self.epoch][i_idxs_out])
 

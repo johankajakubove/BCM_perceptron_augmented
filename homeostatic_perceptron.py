@@ -10,7 +10,7 @@ THRESHOLD_INIT_VALUE = 0.3
 
 
 class HomeostaticPerceptron:
-    def __init__(self, layers, activation_functions, learning_rate, init_w_mean=0.0, init_w_variance=0.02, linear=True):
+    def __init__(self, layers, activation_functions, learning_rate, init_w_mean=0.0, init_w_variance=0.02, linear=True, seed=None):
 
         self.arch = layers
         self.activation_functions = activation_functions
@@ -18,7 +18,7 @@ class HomeostaticPerceptron:
         self.init_weight_mean = init_w_mean
         self.init_weight_variance = init_w_variance
 
-        self.seed = secrets.randbits(64)
+        self.seed = seed if seed is not None else secrets.randbits(64)
         self.rnd = np.random.default_rng(self.seed)
         # make weights: notice +1 for bias, we have to keep in mind to add the bias to all computations
         self.weights_input_hidden = self.rnd.normal(self.init_weight_mean, self.init_weight_variance,

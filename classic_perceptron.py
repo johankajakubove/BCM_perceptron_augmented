@@ -1,5 +1,6 @@
 import numpy as np
 import json
+import secrets
 import plot_changes
 from plot_changes import plot_constants
 
@@ -7,22 +8,26 @@ THRESHOLD_STABILIZATION_MIN=10
 
 
 class ClassicPerceptron:
-    def __init__(self, layers, activation_functions, learning_rate, threshold_speed=0.0075, num=0.5, exp=0.4, init_w_mean=0.0, init_w_variance=0.02, plot=False):
+    def __init__(self, layers, activation_functions, learning_rate, threshold_speed=0.0075, num=0.5, exp=0.4, init_w_mean=0.0, init_w_variance=0.02, plot=False, seed=None, decay=True):
 
         self.arch = layers
         self.activation_functions = activation_functions
         self.learning_rate = learning_rate
         self.init_weight_mean = init_w_mean
         self.init_weight_variance = init_w_variance
+
+        self.seed = seed if seed is not None else secrets.randbits(64)
+        self.rnd = np.random.default_rng(self.seed)
         # make weights: notice +1 for bias, we have to keep in mind to add the bias to all computations
-        self.weights_input_hidden = np.random.normal(self.init_weight_mean, self.init_weight_variance,
+        self.weights_input_hidden = self.rnd.normal(self.init_weight_mean, self.init_weight_variance,
                                                      (self.arch[1], self.arch[0] + 1))
-        self.weights_hidden_output = np.random.normal(self.init_weight_mean, self.init_weight_variance,
+        self.weights_hidden_output = self.rnd.normal(self.init_weight_mean, self.init_weight_variance,
                                                       (self.arch[2], self.arch[1] + 1))
 
         self.threshold_speed = threshold_speed
         self.num = num
         self.exp = exp
+        self.decay = decay
         # watch weights
         self.weights_in_time_input_hidden = None
         self.weights_in_time_hidden_output = None
@@ -111,7 +116,7 @@ class ClassicPerceptron:
 
         for epoch in range(max_epoch):
             self.epoch = epoch
-            index_permutation = np.random.permutation(train_data_size)
+            index_permutation = self.rnd.permutation(train_data_size)
             train_score = 0
 
             for i in range(0, train_data_size, minibatch_size):
@@ -144,7 +149,8 @@ class ClassicPerceptron:
             self.deltas_output_means[epoch] = np.mean(self.deltas_output, axis=0)*100
 
             # GLOBAL LR
-            self.learning_rate = self.threshold_alteration(self.learning_rate, self.num, self.exp)
+            if self.decay:
+                self.learning_rate = self.threshold_alteration(self.learning_rate, self.num, self.exp)
             self.watch_LR[self.epoch] = self.learning_rate
 
             # --- STOP TRAINING if test accuracy 100% ---
